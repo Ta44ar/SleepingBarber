@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <semaphore.h>
 #include <unistd.h>
 
 #include "argsFunctions.h"
@@ -48,15 +47,20 @@ void printInfo()
 
 void getCut(Client *newClient)
 {
-	sem_wait(&newClient->wasCut);
+    pthread_mutex_lock(&newClient->wasCutMutex);
+    while (!currentServedClientId==newClient->id) {
+        pthread_cond_wait(&newClient->wasCutCondition, &newClient->wasCutMutex);
+    }
+    pthread_mutex_unlock(&newClient->wasCutMutex);
 }
 
 void doCut(Client *newClient)
 {
 	int i = rand()%4;
 	sleep(i);
-	sem_post(&newClient->wasCut);
-
+	pthread_mutex_lock(&newClient->wasCutMutex);
+    pthread_cond_signal(&newClient->wasCutCondition);
+    pthread_mutex_unlock(&newClient->wasCutMutex);
 }
 
 void *BarberFunction()
