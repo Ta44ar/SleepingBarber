@@ -52,6 +52,7 @@ void getCut(Client *newClient)
         pthread_cond_wait(&newClient->wasCutCondition, &newClient->wasCutMutex);
     }
     pthread_mutex_unlock(&newClient->wasCutMutex);
+    pthread_mutex_destroy(&newClient->wasCutMutex);
 }
 
 void doCut(Client *newClient)
@@ -106,6 +107,7 @@ void ClientFunction()
             pthread_cond_wait(&newClient->turnCondition, &newClient->turnMutex);
         }
         pthread_mutex_unlock(&newClient->turnMutex);
+        pthread_mutex_destroy(&newClient->turnMutex);
         getCut(newClient);
         
         
@@ -156,4 +158,6 @@ int main(int argc, char *argv[]){
 
     pthread_join(barber, NULL);
     pthread_join(clientGenerator, NULL);
+
+    pthread_mutex_destroy(&waitroomAccess);
 }
