@@ -48,7 +48,8 @@ void printInfo()
 
 void getCut(Client *newClient)
 {
-	sem_wait(&newClient->wasCut);
+	if (sem_wait(&newClient->wasCut) == -1) perror("sem_wait error");
+    sem_destroy(&newClient->wasCut);
 }
 
 void doCut(Client *newClient)
@@ -90,9 +91,10 @@ void ClientFunction()
         printInfo();
         sem_post(&clientReady);
         pthread_mutex_unlock(&waitroomAccess);
-        sem_wait(&newClient->turn);
+        if (sem_wait(&newClient->turn) == -1) perror("sem_wait error");;
+        sem_destroy(&newClient->turn);
         getCut(newClient);
-    } else{
+    } else {
         addClient(&resignedClients, id);
         numberOfResignedClients++;
         printInfo();
@@ -144,4 +146,7 @@ int main(int argc, char *argv[]){
 
     pthread_join(barber, NULL);
     pthread_join(clientGenerator, NULL);
+
+    pthread_mutex_destroy(&waitroomAccess);
+    sem_destroy(&clientReady);
 }
